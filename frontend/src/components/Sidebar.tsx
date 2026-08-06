@@ -25,7 +25,7 @@ export default function Sidebar() {
     { href: '/items', label: 'Inventory Items', icon: <HiOutlineCollection /> },
     { href: '/borrowings', label: 'Borrowings', icon: <HiOutlineSwitchHorizontal /> },
   ];
-// test
+// test 2
   const adminItems = [
     { href: '/users', label: 'User Management', icon: <HiOutlineUsers /> },
     { href: '/activity-logs', label: 'Activity Logs', icon: <HiOutlineClipboardList /> },
