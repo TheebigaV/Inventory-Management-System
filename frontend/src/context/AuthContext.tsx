@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import api from '@/lib/api';
 
 interface User {
@@ -15,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, password_confirmation: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   isAdmin: boolean;
@@ -39,13 +41,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await api.post('/login', { email, password });
-    const { user: userData, token: authToken } = res.data;
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('token', authToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    router.push('/dashboard');
+    try {
+      const res = await api.post('/login', { email, password });
+      const { user: userData, token: authToken } = res.data;
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('token', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      toast.success(`Welcome back, ${userData.name}!`);
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      const errorMessage = errorObj.response?.data?.message || 'The provided credentials are incorrect.';
+      toast.error(errorMessage);
+      throw err;
+    }
+  };
+
+  const register = async (name: string, email: string, password: string, password_confirmation: string) => {
+    try {
+      const res = await api.post('/register', { name, email, password, password_confirmation });
+      const { user: userData, token: authToken } = res.data;
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('token', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      toast.success('Account created successfully! Welcome to InvenTrack.');
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      let errorMessage = 'Registration failed. Please try again.';
+      if (errorObj.response?.data?.errors) {
+        const firstErrorKey = Object.keys(errorObj.response.data.errors)[0];
+        errorMessage = errorObj.response.data.errors[firstErrorKey][0];
+      } else if (errorObj.response?.data?.message) {
+        errorMessage = errorObj.response.data.message;
+      }
+      toast.error(errorMessage);
+      throw err;
+    }
   };
 
   const logout = async () => {
@@ -58,11 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    router.push('/login');
+    toast.success('Logged out successfully.');
+    router.push('/signin');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, loading, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

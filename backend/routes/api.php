@@ -8,6 +8,12 @@ use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\BorrowingController;
 use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\AIController;
+
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\StockTransactionController;
+use App\Http\Controllers\Api\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +23,9 @@ use App\Http\Controllers\Api\DashboardController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/signin', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'publicRegister']);
+Route::post('/signup', [AuthController::class, 'publicRegister']);
 
 // Protected routes (requires auth)
 Route::middleware('auth:sanctum')->group(function () {
@@ -25,29 +34,39 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Dashboard
+    // Dashboard & Reports
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    Route::get('/reports/summary', [ReportController::class, 'summary']);
 
-    // Cupboards
+    // Cupboards & Places
     Route::apiResource('cupboards', CupboardController::class);
-
-    // Places
     Route::apiResource('places', PlaceController::class);
 
-    // Items
+    // Categories & Suppliers
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('suppliers', SupplierController::class);
+
+    // Items & Stock Movement
     Route::apiResource('items', ItemController::class);
     Route::patch('/items/{id}/quantity', [ItemController::class, 'updateQuantity']);
+    Route::get('/stock-transactions', [StockTransactionController::class, 'index']);
+    Route::post('/stock-transactions', [StockTransactionController::class, 'store']);
 
     // Borrowing
     Route::get('/borrowings', [BorrowingController::class, 'index']);
     Route::post('/borrowings', [BorrowingController::class, 'borrow']);
     Route::patch('/borrowings/{id}/return', [BorrowingController::class, 'returnItem']);
 
+    // AI Prediction & Forecasting
+    Route::post('/ai/predict', [AIController::class, 'predict']);
+    Route::get('/ai/metrics', [AIController::class, 'metrics']);
+
     // Admin-only routes
     Route::middleware('admin')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/admin/register', [AuthController::class, 'register']);
         Route::get('/users', [AuthController::class, 'users']);
         Route::delete('/users/{id}', [AuthController::class, 'deleteUser']);
         Route::get('/activity-logs', [ActivityLogController::class, 'index']);
     });
 });
+

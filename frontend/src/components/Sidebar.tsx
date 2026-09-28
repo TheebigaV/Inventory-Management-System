@@ -10,8 +10,12 @@ import {
   HiOutlineLocationMarker,
   HiOutlineSwitchHorizontal,
   HiOutlineUsers,
-  HiOutlineClipboardList,
   HiOutlineLogout,
+  HiOutlineSparkles,
+  HiOutlineTag,
+  HiOutlineTruck,
+  HiOutlineRefresh,
+  HiOutlineChartBar,
 } from 'react-icons/hi';
 
 export default function Sidebar() {
@@ -20,23 +24,34 @@ export default function Sidebar() {
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: <HiOutlineViewGrid /> },
+    { href: '/ai-forecast', label: 'AI Demand Forecast', icon: <HiOutlineSparkles /> },
+    { href: '/items', label: 'Inventory Items', icon: <HiOutlineCollection /> },
+    { href: '/categories', label: 'Categories', icon: <HiOutlineTag /> },
+    { href: '/suppliers', label: 'Suppliers', icon: <HiOutlineTruck /> },
+    { href: '/stock-transactions', label: 'Stock Movements', icon: <HiOutlineRefresh /> },
+    { href: '/borrowings', label: 'Borrowings', icon: <HiOutlineSwitchHorizontal /> },
     { href: '/cupboards', label: 'Cupboards', icon: <HiOutlineCube /> },
     { href: '/places', label: 'Storage Places', icon: <HiOutlineLocationMarker /> },
-    { href: '/items', label: 'Inventory Items', icon: <HiOutlineCollection /> },
-    { href: '/borrowings', label: 'Borrowings', icon: <HiOutlineSwitchHorizontal /> },
+    { href: '/reports', label: 'Reports & Analytics', icon: <HiOutlineChartBar /> },
   ];
-// test 2
+
   const adminItems = [
     { href: '/users', label: 'User Management', icon: <HiOutlineUsers /> },
-    { href: '/activity-logs', label: 'Activity Logs', icon: <HiOutlineClipboardList /> },
   ];
+
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="logo-icon">📦</div>
+      <div className="sidebar-logo flex items-center gap-3">
+        <div className="w-11 h-11 relative rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 ring-1 ring-emerald-500/30 shrink-0">
+          <img
+            src="/logo.png"
+            alt="InvenTrack Logo"
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div>
-          <h1>InvenTrack</h1>
+          <h1 className="text-base font-extrabold tracking-tight text-white leading-tight">InvenTrack<span className="text-emerald-400">.</span></h1>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Inventory System</span>
         </div>
       </div>

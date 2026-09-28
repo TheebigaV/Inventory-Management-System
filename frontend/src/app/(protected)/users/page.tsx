@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineUsers, HiOutlinePencil } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
 interface User {
@@ -21,6 +21,7 @@ export default function UsersPage() {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', password_confirmation: '', role: 'staff' });
 
   useEffect(() => {
@@ -41,17 +42,29 @@ export default function UsersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/register', formData);
-      toast.success('User created');
+      if (editingId) {
+        await api.put(`/users/${editingId}`, formData);
+        toast.success('User updated successfully');
+      } else {
+        await api.post('/register', formData);
+        toast.success('User created successfully');
+      }
       setIsModalOpen(false);
       fetchUsers();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error creating user');
+      toast.error(err.response?.data?.message || 'Error saving user');
     }
   };
 
   const openCreate = () => {
+    setEditingId(null);
     setFormData({ name: '', email: '', password: '', password_confirmation: '', role: 'staff' });
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (user: User) => {
+    setEditingId(user.id);
+    setFormData({ name: user.name, email: user.email, password: '', password_confirmation: '', role: user.role });
     setIsModalOpen(true);
   };
 
@@ -113,7 +126,10 @@ export default function UsersPage() {
                   </td>
                   <td className="text-sm text-gray-400">{new Date(u.created_at).toLocaleDateString()}</td>
                   <td className="text-right">
-                    <button onClick={() => handleDelete(u.id)} className="btn btn-danger btn-sm p-2"><HiOutlineTrash /></button>
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => openEdit(u)} className="btn btn-secondary btn-sm p-2" title="Edit User"><HiOutlinePencil /></button>
+                      <button onClick={() => handleDelete(u.id)} className="btn btn-danger btn-sm p-2" title="Delete User"><HiOutlineTrash /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -132,7 +148,7 @@ export default function UsersPage() {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-title">
-              Create New User
+              {editingId ? 'Edit User' : 'Create New User'}
               <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white">✕</button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -152,16 +168,16 @@ export default function UsersPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="form-group">
-                  <label className="form-label">Password</label>
+                  <label className="form-label">{editingId ? 'New Password (Optional)' : 'Password'}</label>
                   <input 
-                    type="password" className="form-input" required minLength={8}
+                    type="password" className="form-input" required={!editingId} minLength={8}
                     value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Confirm Password</label>
                   <input 
-                    type="password" className="form-input" required minLength={8}
+                    type="password" className="form-input" required={!editingId} minLength={8}
                     value={formData.password_confirmation} onChange={e => setFormData({...formData, password_confirmation: e.target.value})}
                   />
                 </div>
@@ -180,7 +196,7 @@ export default function UsersPage() {
               
               <div className="modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Create User</button>
+                <button type="submit" className="btn btn-primary">{editingId ? 'Save Changes' : 'Create User'}</button>
               </div>
             </form>
           </div>

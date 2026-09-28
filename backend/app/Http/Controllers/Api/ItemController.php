@@ -12,10 +12,16 @@ class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Item::with('place.cupboard');
+        $query = Item::with(['place.cupboard', 'category', 'supplier']);
 
         if ($request->has('place_id')) {
             $query->where('place_id', $request->place_id);
+        }
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->has('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
         }
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -37,6 +43,8 @@ class ItemController extends Controller
     {
         $request->validate([
             'place_id' => 'required|exists:places,id',
+            'category_id' => 'nullable|exists:categories,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:100|unique:items',
             'quantity' => 'required|integer|min:0',
@@ -46,7 +54,7 @@ class ItemController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->only('place_id', 'name', 'code', 'quantity', 'serial_number', 'description', 'status');
+        $data = $request->only('place_id', 'category_id', 'supplier_id', 'name', 'code', 'quantity', 'serial_number', 'description', 'status');
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('items', 'public');

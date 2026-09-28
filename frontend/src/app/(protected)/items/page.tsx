@@ -38,6 +38,7 @@ export default function ItemsPage() {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: '', code: '', quantity: 1, place_id: '' });
 
   useEffect(() => {
@@ -80,17 +81,34 @@ export default function ItemsPage() {
     e.preventDefault();
     try {
       if (!formData.place_id) return toast.error('Please select a storage place');
-      await api.post('/items', formData);
-      toast.success('Item added successfully');
+      if (editingId) {
+        await api.put(`/items/${editingId}`, formData);
+        toast.success('Item updated successfully');
+      } else {
+        await api.post('/items', formData);
+        toast.success('Item added successfully');
+      }
       setIsModalOpen(false);
       fetchItems();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to add item');
+      toast.error(err.response?.data?.message || 'Failed to save item');
     }
   };
 
   const openAddModal = () => {
+    setEditingId(null);
     setFormData({ name: '', code: '', quantity: 1, place_id: '' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (item: Item) => {
+    setEditingId(item.id);
+    setFormData({
+      name: item.name,
+      code: item.code,
+      quantity: item.quantity,
+      place_id: item.place?.id ? item.place.id.toString() : ''
+    });
     setIsModalOpen(true);
   };
 
@@ -155,7 +173,8 @@ export default function ItemsPage() {
                   {isAdmin && (
                     <td className="text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => deleteItem(item.id)} className="btn btn-danger btn-sm p-2"><HiOutlineTrash /></button>
+                        <button onClick={() => openEditModal(item)} className="btn btn-secondary btn-sm p-2" title="Edit Item"><HiOutlinePencil /></button>
+                        <button onClick={() => deleteItem(item.id)} className="btn btn-danger btn-sm p-2" title="Delete Item"><HiOutlineTrash /></button>
                       </div>
                     </td>
                   )}
@@ -170,12 +189,12 @@ export default function ItemsPage() {
         )}
       </div>
 
-      {/* Add Item Modal */}
+      {/* Add / Edit Item Modal */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-title">
-              Add New Item
+              {editingId ? 'Edit Item' : 'Add New Item'}
               <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white">✕</button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -197,10 +216,10 @@ export default function ItemsPage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Initial Quantity</label>
+                  <label className="form-label">Quantity</label>
                   <input 
                     type="number" className="form-input" required min="1"
-                    value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value)})}
+                    value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
                   />
                 </div>
               </div>
@@ -222,7 +241,7 @@ export default function ItemsPage() {
               
               <div className="modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Item</button>
+                <button type="submit" className="btn btn-primary">{editingId ? 'Save Changes' : 'Save Item'}</button>
               </div>
             </form>
           </div>
